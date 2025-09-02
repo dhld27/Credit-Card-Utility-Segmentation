@@ -10,116 +10,116 @@ import io
 
 import matplotlib.pyplot as plt
 
-# Load your data
-@st.cache_data
-def load_data():
-    # Update the path to your dataset as needed
-    df = pd.read_csv('credit_card_default.csv')
-    return df
+def run_eda_cluster():    
+    # Load your data
+    @st.cache_data
+    def load_data():
+        # Update the path to your dataset as needed
+        df = pd.read_csv('credit_card_default.csv')
+        return df
 
-df = load_data()
+    df = load_data()
 
-st.sidebar.image("https://www.svgrepo.com/show/528100/card.svg")
+    st.sidebar.image("https://www.svgrepo.com/show/528100/card.svg")
 
-# Sidebar for navigation
-st.sidebar.title("EDA & Clustering App")
-tab = st.sidebar.radio("Choose Analysis", ["EDA Before Clustering", "EDA After Clustering"])
+    # Sidebar for navigation
+    st.sidebar.title("EDA & Clustering App")
+    tab = st.sidebar.radio("Choose Analysis", ["EDA Before Clustering", "EDA After Clustering"])
 
-# --- PCA and n_cluster decision section ---
+    # --- PCA and n_cluster decision section ---
 
-st.header("PCA & Cluster Selection")
+    st.header("PCA & Cluster Selection")
 
-# Select only numeric columns for PCA and clustering
-pdfNum = df.select_dtypes(include=['float64', 'int64'])
+    # Select only numeric columns for PCA and clustering
+    pdfNum = df.select_dtypes(include=['float64', 'int64'])
 
-# Fill NaN/missing values with 0
-pdfNum = pdfNum.fillna(0)
+    # Fill NaN/missing values with 0
+    pdfNum = pdfNum.fillna(0)
 
-# Outlier treatment using Winsorizer
-columns = ['BALANCE', 'PURCHASES',
-       'ONEOFF_PURCHASES', 'INSTALLMENTS_PURCHASES', 'CASH_ADVANCE',
-       'CASH_ADVANCE_TRX', 'PURCHASES_TRX', 'CREDIT_LIMIT', 'PAYMENTS',
-       'MINIMUM_PAYMENTS', 'PRC_FULL_PAYMENT', 'TENURE']
+    # Outlier treatment using Winsorizer
+    columns = ['BALANCE', 'PURCHASES',
+        'ONEOFF_PURCHASES', 'INSTALLMENTS_PURCHASES', 'CASH_ADVANCE',
+        'CASH_ADVANCE_TRX', 'PURCHASES_TRX', 'CREDIT_LIMIT', 'PAYMENTS',
+        'MINIMUM_PAYMENTS', 'PRC_FULL_PAYMENT', 'TENURE']
 
-normal = []
-skew = []
-extremeSkew = []
+    normal = []
+    skew = []
+    extremeSkew = []
 
-for col in columns:
-    if col in pdfNum.columns:
-        skewness = pdfNum[col].skew()
-        if -0.5 < skewness < 0.5:
-            normal.append(col)
-        elif -1 < skewness <= -0.5 or 0.5 <= skewness < 1:
-            skew.append(col)
-        else:
-            extremeSkew.append(col)
+    for col in columns:
+        if col in pdfNum.columns:
+            skewness = pdfNum[col].skew()
+            if -0.5 < skewness < 0.5:
+                normal.append(col)
+            elif -1 < skewness <= -0.5 or 0.5 <= skewness < 1:
+                skew.append(col)
+            else:
+                extremeSkew.append(col)
 
-# Apply Winsorization
-winsorizer = Winsorizer(capping_method='iqr', tail='both', fold=3)
-for col in extremeSkew:
-    if col != 'TENURE' and col in pdfNum.columns:
-        pdfNum[col] = winsorizer.fit_transform(pdfNum[[col]])
+    # Apply Winsorization
+    winsorizer = Winsorizer(capping_method='iqr', tail='both', fold=3)
+    for col in extremeSkew:
+        if col != 'TENURE' and col in pdfNum.columns:
+            pdfNum[col] = winsorizer.fit_transform(pdfNum[[col]])
 
 
-# Scaling
-scaler = MinMaxScaler()
-pdfNumScaled = scaler.fit_transform(pdfNum)
+    # Scaling
+    scaler = MinMaxScaler()
+    pdfNumScaled = scaler.fit_transform(pdfNum)
 
-# PCA fit
-pca = PCA()
-pca.fit(pdfNumScaled)
+    # PCA fit
+    pca = PCA()
+    pca.fit(pdfNumScaled)
 
-# Plot Cumulative Explained Variance Ratio
-fig1, ax1 = plt.subplots(figsize=(7, 4))
-ax1.plot(range(1, len(pca.explained_variance_ratio_)+1), np.cumsum(pca.explained_variance_ratio_ * 100), marker='o')
-ax1.set_xlabel('Number of components')
-ax1.set_ylabel('Explained Variance Ratio - Cumulative (%)')
-ax1.set_title('Cumulative Explained Variance by PCA Components')
-ax1.grid()
-st.pyplot(fig1)
-plt.clf()
+    # Plot Cumulative Explained Variance Ratio
+    fig1, ax1 = plt.subplots(figsize=(7, 4))
+    ax1.plot(range(1, len(pca.explained_variance_ratio_)+1), np.cumsum(pca.explained_variance_ratio_ * 100), marker='o')
+    ax1.set_xlabel('Number of components')
+    ax1.set_ylabel('Explained Variance Ratio - Cumulative (%)')
+    ax1.set_title('Cumulative Explained Variance by PCA Components')
+    ax1.grid()
+    st.pyplot(fig1)
+    plt.clf()
 
-# Plot Eigenvalues
-fig2, ax2 = plt.subplots(figsize=(7, 4))
-ax2.plot(range(1, len(pca.explained_variance_)+1), pca.explained_variance_, marker='o')
-ax2.set_xlabel('Number of components')
-ax2.set_ylabel('Eigenvalues')
-ax2.set_title('PCA Eigenvalues')
-ax2.grid()
-st.pyplot(fig2)
-plt.clf()
+    # Plot Eigenvalues
+    fig2, ax2 = plt.subplots(figsize=(7, 4))
+    ax2.plot(range(1, len(pca.explained_variance_)+1), pca.explained_variance_, marker='o')
+    ax2.set_xlabel('Number of components')
+    ax2.set_ylabel('Eigenvalues')
+    ax2.set_title('PCA Eigenvalues')
+    ax2.grid()
+    st.pyplot(fig2)
+    plt.clf()
 
-# Number of features to retain 95% variance
-cumsum = np.cumsum(pca.explained_variance_ratio_)
-num_features = np.argmax(cumsum >= 0.95) + 1
-st.write(f"Number of PCA components to retain 95% variance: **{num_features}**")
+    # Number of features to retain 95% variance
+    cumsum = np.cumsum(pca.explained_variance_ratio_)
+    num_features = np.argmax(cumsum >= 0.95) + 1
+    st.write(f"Number of PCA components to retain 95% variance: **{num_features}**")
 
-# Transform data with optimal PCA components
-pca_opt = PCA(n_components=num_features)
-pdfNumScaled_pca = pca_opt.fit_transform(pdfNumScaled)
+    # Transform data with optimal PCA components
+    pca_opt = PCA(n_components=num_features)
+    pdfNumScaled_pca = pca_opt.fit_transform(pdfNumScaled)
 
-# Elbow Method for KMeans
-wcss = []
-random_state = 10
-max_cluster = 9
-for i in range(2, max_cluster+1):
-    km = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=random_state)
-    km.fit(pdfNumScaled_pca)
-    wcss.append(km.inertia_)
+    # Elbow Method for KMeans
+    wcss = []
+    random_state = 10
+    max_cluster = 9
+    for i in range(2, max_cluster+1):
+        km = KMeans(n_clusters=i, init='k-means++', max_iter=300, n_init=10, random_state=random_state)
+        km.fit(pdfNumScaled_pca)
+        wcss.append(km.inertia_)
 
-fig3, ax3 = plt.subplots(figsize=(7, 4))
-ax3.plot(range(2, max_cluster+1), wcss, marker='o')
-ax3.set_xlabel('Number of Clusters')
-ax3.set_ylabel('WCSS')
-ax3.set_title('Elbow Method For Optimal Clusters')
-ax3.grid()
-st.pyplot(fig3)
-plt.clf()
+    fig3, ax3 = plt.subplots(figsize=(7, 4))
+    ax3.plot(range(2, max_cluster+1), wcss, marker='o')
+    ax3.set_xlabel('Number of Clusters')
+    ax3.set_ylabel('WCSS')
+    ax3.set_title('Elbow Method For Optimal Clusters')
+    ax3.grid()
+    st.pyplot(fig3)
+    plt.clf()
 
-# --- EDA Before and After Clustering ---
+    # --- EDA Before and After Clustering ---
 
-def run_eda_cluster():
     if tab == "EDA Before Clustering":
         st.title("Exploratory Data Analysis - Before Clustering")
         st.checkbox("Show the dataframe", value=True)
