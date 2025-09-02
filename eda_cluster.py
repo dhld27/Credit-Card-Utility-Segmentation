@@ -19,6 +19,8 @@ def load_data():
 
 df = load_data()
 
+st.sidebar.image("https://www.svgrepo.com/show/528100/card.svg")
+
 # Sidebar for navigation
 st.sidebar.title("EDA & Clustering App")
 tab = st.sidebar.radio("Choose Analysis", ["EDA Before Clustering", "EDA After Clustering"])
@@ -117,91 +119,95 @@ plt.clf()
 
 # --- EDA Before and After Clustering ---
 
-if tab == "EDA Before Clustering":
-    st.title("Exploratory Data Analysis - Before Clustering")
-    st.checkbox("Show the dataframe", value=True)
-    st.dataframe(df, height=300)
+def run_eda_cluster():
+    if tab == "EDA Before Clustering":
+        st.title("Exploratory Data Analysis - Before Clustering")
+        st.checkbox("Show the dataframe", value=True)
+        st.dataframe(df, height=300)
 
-    st.write("Data Info:")
-    info_df = pd.DataFrame({
-        "Column": df.columns,
-        "Non-Null Count": [df[col].notnull().sum() for col in df.columns],
-        "Dtype": [df[col].dtype for col in df.columns]
-    })
-    st.dataframe(info_df)
+        st.write("Data Info:")
+        info_df = pd.DataFrame({
+            "Column": df.columns,
+            "Non-Null Count": [df[col].notnull().sum() for col in df.columns],
+            "Dtype": [df[col].dtype for col in df.columns]
+        })
+        st.dataframe(info_df)
 
-    st.write("Summary Statistics:")
-    st.dataframe(df.describe())
+        st.write("Summary Statistics:")
+        st.dataframe(df.describe())
 
-    st.write("Missing Values:")
-    st.dataframe(df.isnull().sum())
+        st.write("Missing Values:")
+        st.dataframe(df.isnull().sum())
 
-    # Custom EDA: Credit Limit vs Purchases, Balance, OneOff Purchases, Installments Purchases
-    st.write("Credit Limit vs Various Features")
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    sns.scatterplot(x='PURCHASES', y='CREDIT_LIMIT', data=df, ax=axes[0,0])
-    axes[0,0].set_title('Credit Limit And Purchases')
-    sns.scatterplot(x='BALANCE', y='CREDIT_LIMIT', data=df, ax=axes[0,1])
-    axes[0,1].set_title('Credit Limit And Balance')
-    sns.scatterplot(x='ONEOFF_PURCHASES', y='CREDIT_LIMIT', data=df, ax=axes[1,0])
-    axes[1,0].set_title('Credit Limit And One Off Purchases')
-    sns.scatterplot(x='INSTALLMENTS_PURCHASES', y='CREDIT_LIMIT', data=df, ax=axes[1,1])
-    axes[1,1].set_title('Credit Limit And Installments Purchases')
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.clf()
+        # Custom EDA: Credit Limit vs Purchases, Balance, OneOff Purchases, Installments Purchases
+        st.write("Credit Limit vs Various Features")
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        sns.scatterplot(x='PURCHASES', y='CREDIT_LIMIT', data=df, ax=axes[0,0])
+        axes[0,0].set_title('Credit Limit And Purchases')
+        sns.scatterplot(x='BALANCE', y='CREDIT_LIMIT', data=df, ax=axes[0,1])
+        axes[0,1].set_title('Credit Limit And Balance')
+        sns.scatterplot(x='ONEOFF_PURCHASES', y='CREDIT_LIMIT', data=df, ax=axes[1,0])
+        axes[1,0].set_title('Credit Limit And One Off Purchases')
+        sns.scatterplot(x='INSTALLMENTS_PURCHASES', y='CREDIT_LIMIT', data=df, ax=axes[1,1])
+        axes[1,1].set_title('Credit Limit And Installments Purchases')
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.clf()
 
-elif tab == "EDA After Clustering":
-    st.title("Exploratory Data Analysis - After Clustering")
+    elif tab == "EDA After Clustering":
+        st.title("Exploratory Data Analysis - After Clustering")
 
-    # Cluster selection
-    k = st.sidebar.slider("Number of clusters", 2, 9, 4)
-    km = KMeans(n_clusters=k, init='k-means++', max_iter=300, n_init=10, random_state=random_state)
-    pred = km.fit_predict(pdfNumScaled_pca)
+        # Cluster selection
+        k = st.sidebar.slider("Number of clusters", 2, 9, 4)
+        km = KMeans(n_clusters=k, init='k-means++', max_iter=300, n_init=10, random_state=random_state)
+        pred = km.fit_predict(pdfNumScaled_pca)
 
-    # Add cluster labels to dataframe
-    df_clustered = df.copy()
-    df_clustered['cluster'] = pred
+        # Add cluster labels to dataframe
+        df_clustered = df.copy()
+        df_clustered['cluster'] = pred
 
-    # PCA for 2D visualization
-    pca_2d = PCA(n_components=2)
-    pdfNumScaled_pca_2d = pca_2d.fit_transform(pdfNumScaled)
+        # PCA for 2D visualization
+        pca_2d = PCA(n_components=2)
+        pdfNumScaled_pca_2d = pca_2d.fit_transform(pdfNumScaled)
 
-    st.write("PCA 2D Scatter Plot by Cluster")
-    fig4, ax4 = plt.subplots(figsize=(8, 6))
-    sns.scatterplot(x=pdfNumScaled_pca_2d[:,0], y=pdfNumScaled_pca_2d[:,1], hue=pred, palette='coolwarm', ax=ax4)
-    ax4.set_title('Clusters visualized in PCA 2D space')
-    st.pyplot(fig4)
-    plt.clf()
+        st.write("PCA 2D Scatter Plot by Cluster")
+        fig4, ax4 = plt.subplots(figsize=(8, 6))
+        sns.scatterplot(x=pdfNumScaled_pca_2d[:,0], y=pdfNumScaled_pca_2d[:,1], hue=pred, palette='coolwarm', ax=ax4)
+        ax4.set_title('Clusters visualized in PCA 2D space')
+        st.pyplot(fig4)
+        plt.clf()
 
-    # Credit Limit vs Purchases
-    st.write("Credit Limit vs Purchases by Cluster")
-    fig5, ax5 = plt.subplots()
-    sns.scatterplot(data=df_clustered, x='PURCHASES', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax5)
-    ax5.set_title('CREDIT LIMIT vs PURCHASES')
-    st.pyplot(fig5)
-    plt.clf()
+        # Credit Limit vs Purchases
+        st.write("Credit Limit vs Purchases by Cluster")
+        fig5, ax5 = plt.subplots()
+        sns.scatterplot(data=df_clustered, x='PURCHASES', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax5)
+        ax5.set_title('CREDIT LIMIT vs PURCHASES')
+        st.pyplot(fig5)
+        plt.clf()
 
-    # Credit Limit vs Balance
-    st.write("Credit Limit vs Balance by Cluster")
-    fig6, ax6 = plt.subplots()
-    sns.scatterplot(data=df_clustered, x='BALANCE', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax6)
-    ax6.set_title('CREDIT LIMIT vs BALANCE')
-    st.pyplot(fig6)
-    plt.clf()
+        # Credit Limit vs Balance
+        st.write("Credit Limit vs Balance by Cluster")
+        fig6, ax6 = plt.subplots()
+        sns.scatterplot(data=df_clustered, x='BALANCE', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax6)
+        ax6.set_title('CREDIT LIMIT vs BALANCE')
+        st.pyplot(fig6)
+        plt.clf()
 
-    # Credit Limit vs One-Off Purchases
-    st.write("Credit Limit vs One-Off Purchases by Cluster")
-    fig7, ax7 = plt.subplots()
-    sns.scatterplot(data=df_clustered, x='ONEOFF_PURCHASES', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax7)
-    ax7.set_title('CREDIT LIMIT vs ONE-OFF PURCHASES')
-    st.pyplot(fig7)
-    plt.clf()
+        # Credit Limit vs One-Off Purchases
+        st.write("Credit Limit vs One-Off Purchases by Cluster")
+        fig7, ax7 = plt.subplots()
+        sns.scatterplot(data=df_clustered, x='ONEOFF_PURCHASES', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax7)
+        ax7.set_title('CREDIT LIMIT vs ONE-OFF PURCHASES')
+        st.pyplot(fig7)
+        plt.clf()
 
-    # Credit Limit vs Installments Purchases
-    st.write("Credit Limit vs Installments Purchases by Cluster")
-    fig8, ax8 = plt.subplots()
-    sns.scatterplot(data=df_clustered, x='INSTALLMENTS_PURCHASES', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax8)
-    ax8.set_title('CREDIT LIMIT vs INSTALLMENTS PURCHASES')
-    st.pyplot(fig8)
-    plt.clf()
+        # Credit Limit vs Installments Purchases
+        st.write("Credit Limit vs Installments Purchases by Cluster")
+        fig8, ax8 = plt.subplots()
+        sns.scatterplot(data=df_clustered, x='INSTALLMENTS_PURCHASES', y='CREDIT_LIMIT', hue='cluster', palette='coolwarm', ax=ax8)
+        ax8.set_title('CREDIT LIMIT vs INSTALLMENTS PURCHASES')
+        st.pyplot(fig8)
+        plt.clf()
+
+if __name__ == "__main__":
+    run_eda_cluster()
