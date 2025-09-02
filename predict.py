@@ -20,6 +20,10 @@ def run():
 
     st.write("Fill the form below for your Credit Segmentation.")
 
+    # Use Streamlit session state to persist the result
+    if "cluster_result" not in st.session_state:
+        st.session_state.cluster_result = None
+
     with st.form("Credit Cluster"):
         st.title("Credit Usage")
         # Example: Add sliders, selectboxes, and explanations for engagement
@@ -81,9 +85,14 @@ def run():
             # Predict the cluster
             cluster = modelKM.predict(pca_data)
 
+            st.session_state.cluster_result = cluster[0]
             st.success(f"🎉 Your Credit Segmentation Cluster is: {cluster[0]}")
             st.write("Thank you for using our Credit Segmentation Classifier!")
             st.balloons()
+
+    # Show the result if it exists in session state
+    if st.session_state.cluster_result is not None:
+        st.success(f"🎉 Your Credit Segmentation Cluster is: {st.session_state.cluster_result}")
 
 if __name__ == "__main__":
     run()
