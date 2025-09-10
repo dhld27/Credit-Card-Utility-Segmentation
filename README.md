@@ -69,3 +69,11 @@ source venv/bin/activate  # on Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 python eda.py         # or other script for EDA
 python clustering.py  # start clustering flows
+```
+
+---
+
+## Results & Insights
+Will update soon
+
+---
