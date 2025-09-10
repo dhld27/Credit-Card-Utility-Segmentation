@@ -19,8 +19,7 @@ def run_eda_cluster():
         return df
 
     df = load_data()
-
-    st.sidebar.image("https://www.svgrepo.com/show/528100/card.svg")
+    
 
     # Sidebar for navigation
     st.sidebar.title("EDA & Clustering App")
