@@ -2,13 +2,14 @@ import eda_cluster, predict
 import streamlit as st
 from PIL import Image
 
-st.sidebar.title("Credit Card Default Prediction App")
+# Add a sidebar image/logo for branding
+st.sidebar.image("https://www.svgrepo.com/show/528100/card.svg", use_container_width=True)
+
+# Set up the main app title and description
+st.sidebar.title("Credit Card Default Prediction & Customer Segmentation")
 st.sidebar.write(
     "Predict whether a credit card holder will default next month based on their financial behavior and segmentation."
 )
-
-# Add a sidebar image/logo for branding
-st.sidebar.image("https://thumbs.dreamstime.com/b/credit-card-29413194.jpg", use_column_width=True)
 
 # Add a sidebar info box
 with st.sidebar.expander("About this app"):
@@ -47,7 +48,14 @@ else:
     )
 
 # Add a feedback widget
-feedback = st.sidebar.text_area("Feedback", "Let us know your thoughts...")
+feedback = st.sidebar.text_area(
+    "Feedback",
+    placeholder="Let us know your thoughts..."
+)
+
+# Show feedback submission confirmation
+if feedback and st.sidebar.button("Submit Feedback"):
+    st.sidebar.success("Thank you for your feedback!")
 
 app_mode = st.sidebar.selectbox("Choose the app mode", ["EDA & Clustering", "Prediction"])
 
@@ -56,6 +64,3 @@ if app_mode == "EDA & Clustering":
 elif app_mode == "Prediction":
     predict.run()
 
-# Show feedback submission confirmation
-if feedback and st.sidebar.button("Submit Feedback"):
-    st.sidebar.success("Thank you for your feedback!")
