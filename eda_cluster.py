@@ -122,8 +122,9 @@ def run_eda_cluster():
 
     if tab == "EDA Before Clustering":
         st.title("Exploratory Data Analysis - Before Clustering")
-        st.checkbox("Show the dataframe", value=True)
-        st.dataframe(df, height=300)
+        show_df = st.checkbox("Show the dataframe", value=True)
+        if show_df:
+            st.dataframe(df, height=300)
 
         st.write("Data Info:")
         info_df = pd.DataFrame({
