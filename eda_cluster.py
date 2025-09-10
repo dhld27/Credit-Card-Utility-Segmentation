@@ -121,23 +121,31 @@ def run_eda_cluster():
 
     if tab == "EDA Before Clustering":
         st.title("Exploratory Data Analysis - Before Clustering")
-        show_df = st.checkbox("Show the dataframe", value=True)
-        if show_df:
+        options = st.multiselect(
+            "Select EDA options to display:",
+            ["Show the dataframe", "Show DataFrame Info", "Show Summary Statistics", "Show Missing Values"],
+            default=["Show the dataframe", "Show DataFrame Info", "Show Summary Statistics", "Show Missing Values"]
+        )
+
+        if "Show the dataframe" in options:
             st.dataframe(df, height=300)
 
-        st.write("Data Info:")
-        info_df = pd.DataFrame({
+        if "Show DataFrame Info" in options:
+            st.write("Data Info:")
+            info_df = pd.DataFrame({
             "Column": df.columns,
             "Non-Null Count": [df[col].notnull().sum() for col in df.columns],
             "Dtype": [df[col].dtype for col in df.columns]
-        })
-        st.dataframe(info_df)
+            })
+            st.dataframe(info_df)
 
-        st.write("Summary Statistics:")
-        st.dataframe(df.describe())
+        if "Show Summary Statistics" in options:
+            st.write("Summary Statistics:")
+            st.dataframe(df.describe().T)
 
-        st.write("Missing Values:")
-        st.dataframe(df.isnull().sum())
+        if "Show Missing Values" in options:
+            st.write("Missing Values:")
+            st.dataframe(df.isnull().sum())
 
         # Custom EDA: Credit Limit vs Purchases, Balance, OneOff Purchases, Installments Purchases
         st.write("Credit Limit vs Various Features")
